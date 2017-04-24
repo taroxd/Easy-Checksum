@@ -1,0 +1,31 @@
+﻿<Page
+    x:Class="CheckSumIt.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CheckSumIt"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" Drop="Grid_Drop" DragOver="Grid_DragOver">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Button x:Name="FilePickerButton" Content="Open Files" HorizontalAlignment="Center" VerticalAlignment="Center" Click="FilePickerButton_Click" Height="32" Width="90" IsEnabled="False" Grid.Column="1"/>
+        <TextBox x:Name="resultTextBox" 
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                 Grid.Row="1" TextWrapping="Wrap" Text="" Grid.ColumnSpan="2" IsReadOnly="True" Margin="20" IsSpellCheckEnabled="False"/>
+        <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="HashNamesStackPanel">
+            <CheckBox x:Name="Md5CheckBox" Content="MD5" HorizontalAlignment="Center" VerticalContentAlignment="Top" Click="HashCheckBox_Click"/>
+            <CheckBox x:Name="Sha1CheckBox" Content="SHA-1" HorizontalAlignment="Center" VerticalContentAlignment="Top" Click="HashCheckBox_Click"/>
+            <CheckBox x:Name="Sha256CheckBox" Content="SHA-256" HorizontalAlignment="Center" VerticalContentAlignment="Top" Click="HashCheckBox_Click"/>
+            <CheckBox x:Name="Sha384CheckBox" Content="SHA-384" HorizontalAlignment="Center" VerticalContentAlignment="Top" Click="HashCheckBox_Click"/>
+            <CheckBox x:Name="Sha512CheckBox" Content="SHA-512" HorizontalAlignment="Center" VerticalContentAlignment="Top" Click="HashCheckBox_Click"/>
+        </StackPanel>
+    </Grid>
+</Page>
