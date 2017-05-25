@@ -8,12 +8,14 @@ using Windows.Storage.Streams;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using System.IO;
+using Windows.System;
 
 namespace CheckSumIt
 {
     static class Hasher
     {
-        const int CAPACITY = 1024 * 1024 * 256;
+        readonly private static uint CAPACITY;
+        private const uint MB = 1024 * 1024;
 
         static private readonly Dictionary<string, CryptographicHash> nameToHasher = new Dictionary<string, CryptographicHash>
         {
@@ -24,15 +26,30 @@ namespace CheckSumIt
             { "SHA-512", HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha512).CreateHash() }
         };
 
+        static Hasher()
+        {
+            ulong memoryAvailable = MemoryManager.AppMemoryUsageLimit - MemoryManager.AppMemoryUsage;
+
+            if (memoryAvailable >= (ulong)2048 * MB)
+            {
+                CAPACITY = 1024 * MB;
+            }
+            else
+            {
+                int tryCapacity = (int)(memoryAvailable / 2) - 10 * (int)MB;
+                CAPACITY = tryCapacity > 1 * MB ? (uint)tryCapacity : 1 * MB;
+            }
+        }
+
         public async static Task<IEnumerable<string>> GetHashAsync(IStorageFile file, IEnumerable<string> hashAlgorithms)
         {
             var fileProperties = await file.GetBasicPropertiesAsync();
             var size = fileProperties.Size;
             
             // small file, store in the memory
-            if (size < CAPACITY)
+            if (size <= CAPACITY)
             {
-                var buffer = await Windows.Storage.FileIO.ReadBufferAsync(file);
+                var buffer = await FileIO.ReadBufferAsync(file);
                 return hashAlgorithms.Select(hashName =>
                 {
                     var cryptoHash = nameToHasher[hashName];

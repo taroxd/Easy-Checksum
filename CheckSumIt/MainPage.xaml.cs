@@ -27,11 +27,11 @@ namespace CheckSumIt
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private bool _isBusy = false;
+        private bool isBusy = false;
 
-        private bool _canStart
+        private bool canStart
         {
-            get => HashNamesStackPanel.Children.Any(child => ((CheckBox)child).IsChecked.GetValueOrDefault()) && !_isBusy;
+            get => HashNamesStackPanel.Children.Any(child => ((CheckBox)child).IsChecked.GetValueOrDefault()) && !isBusy;
         }
 
         public MainPage()
@@ -54,7 +54,7 @@ namespace CheckSumIt
         private async Task ReadFileAndUpdate(IEnumerable<IStorageFile> files)
         {
             resultTextBox.Text = "";
-            if (files.Count() > 0 && !_isBusy)
+            if (files.Count() > 0 && !isBusy)
             {
                 SetBusy(true);
                 var hashNames = (from child in HashNamesStackPanel.Children
@@ -83,7 +83,7 @@ namespace CheckSumIt
 
         private void UpdateFilePickerButtonEnabled()
         {
-            FilePickerButton.IsEnabled = _canStart;
+            FilePickerButton.IsEnabled = canStart;
         }
 
         private async void Grid_Drop(object sender, DragEventArgs e)
@@ -98,7 +98,7 @@ namespace CheckSumIt
 
         private void Grid_DragOver(object sender, DragEventArgs e)
         {
-            if (_canStart)
+            if (canStart)
             {
                 e.AcceptedOperation = DataPackageOperation.Copy;
                 e.DragUIOverride.IsCaptionVisible = false;
@@ -108,7 +108,7 @@ namespace CheckSumIt
 
         private void SetBusy(bool isBusy)
         {
-            _isBusy = isBusy;
+            this.isBusy = isBusy;
             UpdateFilePickerButtonEnabled();
         }
     }
