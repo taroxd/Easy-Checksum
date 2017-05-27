@@ -14,17 +14,8 @@ namespace CheckSumIt
 {
     static class Hasher
     {
-        readonly private static uint CAPACITY;
+        readonly private static uint BUFFER_SIZE;
         private const uint MB = 1024 * 1024;
-
-        static private readonly Dictionary<string, CryptographicHash> nameToHasher = new Dictionary<string, CryptographicHash>
-        {
-            { "MD5", HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5).CreateHash() },
-            { "SHA-1", HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1).CreateHash() },
-            { "SHA-256", HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha256).CreateHash() },
-            { "SHA-384", HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha384).CreateHash() },
-            { "SHA-512", HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha512).CreateHash() }
-        };
 
         static Hasher()
         {
@@ -32,12 +23,12 @@ namespace CheckSumIt
 
             if (memoryAvailable >= (ulong)2048 * MB)
             {
-                CAPACITY = 1024 * MB;
+                BUFFER_SIZE = 1024 * MB;
             }
             else
             {
                 int tryCapacity = (int)(memoryAvailable / 2) - 10 * (int)MB;
-                CAPACITY = tryCapacity > 1 * MB ? (uint)tryCapacity : 1 * MB;
+                BUFFER_SIZE = tryCapacity > 1 * MB ? (uint)tryCapacity : 1 * MB;
             }
         }
 
@@ -47,12 +38,12 @@ namespace CheckSumIt
             var size = fileProperties.Size;
             
             // small file, store in the memory
-            if (size <= CAPACITY)
+            if (size <= BUFFER_SIZE)
             {
                 var buffer = await FileIO.ReadBufferAsync(file);
-                return hashAlgorithms.Select(hashName =>
+                return hashAlgorithms.Select(algorithm =>
                 {
-                    var cryptoHash = nameToHasher[hashName];
+                    var cryptoHash = AlgorithmToHash(algorithm);
                     cryptoHash.Append(buffer);
                     return CryptographicBuffer.EncodeToHexString(cryptoHash.GetValueAndReset());
                 });
@@ -63,13 +54,13 @@ namespace CheckSumIt
                 using (var stream = await file.OpenStreamForReadAsync())
                 using (var inputStream = stream.AsInputStream())
                 {
-                    var buffer = new Windows.Storage.Streams.Buffer(CAPACITY);
+                    var buffer = new Windows.Storage.Streams.Buffer(BUFFER_SIZE);
 
-                    var cryptoHashes = from hashName in hashAlgorithms select nameToHasher[hashName];
+                    var cryptoHashes = hashAlgorithms.Select(AlgorithmToHash);
 
                     while (true)
                     {
-                        await inputStream.ReadAsync(buffer, CAPACITY, InputStreamOptions.None);
+                        await inputStream.ReadAsync(buffer, BUFFER_SIZE, InputStreamOptions.None);
                         if (buffer.Length > 0)
                             foreach(var cryptoHash in cryptoHashes)
                             {
@@ -84,5 +75,9 @@ namespace CheckSumIt
             }
         }
 
+        private static CryptographicHash AlgorithmToHash(string algorithm)
+        {
+            return HashAlgorithmProvider.OpenAlgorithm(algorithm).CreateHash();
+        }
     }
 }
