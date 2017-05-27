@@ -42,11 +42,7 @@ namespace CheckSumIt
             {
                 var buffer = await FileIO.ReadBufferAsync(file);
                 return hashAlgorithms.Select(algorithm =>
-                {
-                    var cryptoHash = AlgorithmToHash(algorithm);
-                    cryptoHash.Append(buffer);
-                    return CryptographicBuffer.EncodeToHexString(cryptoHash.GetValueAndReset());
-                });
+                    CryptographicBuffer.EncodeToHexString(HashAlgorithmProvider.OpenAlgorithm(algorithm).HashData(buffer)));
             }
             // big file
             else
@@ -56,7 +52,7 @@ namespace CheckSumIt
                 {
                     var buffer = new Windows.Storage.Streams.Buffer(BUFFER_SIZE);
 
-                    var cryptoHashes = hashAlgorithms.Select(AlgorithmToHash);
+                    var cryptoHashes = hashAlgorithms.Select(algorithm => HashAlgorithmProvider.OpenAlgorithm(algorithm).CreateHash());
 
                     while (true)
                     {
@@ -73,11 +69,6 @@ namespace CheckSumIt
                             select CryptographicBuffer.EncodeToHexString(cryptoHash.GetValueAndReset()));
                 }
             }
-        }
-
-        private static CryptographicHash AlgorithmToHash(string algorithm)
-        {
-            return HashAlgorithmProvider.OpenAlgorithm(algorithm).CreateHash();
         }
     }
 }
